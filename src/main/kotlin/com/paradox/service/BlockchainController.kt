@@ -40,28 +40,38 @@ import java.util.UUID
 @RestController
 @RequestMapping("api/blockchain")
 class BlockchainController {
-    val CONTRACT_ADDRESS = "tp1y9c0klrq8h6mpcssvczx0xgdetaxtf0ec8hzfqnv7h549lasgh5srf3dnq"
+    val CONTRACT_ADDRESS = "tp1dzl6su6zw9futqe8xcrvy62jpr6whla0tmxeru2xwx8eaa3ml5lsxrzlpv"
     val client = PbClient("pio-testnet-1", URI("grpcs://grpc.test.provenance.io:443"), GasEstimationMethod.MSG_FEE_CALCULATION)
     val gson = Gson()
 
-    @GetMapping
-    fun GetAll(): Array<InvoiceNTF> {
-        val result = bcQuery(ByteString.copyFromUtf8("""{"get_all": {}}"""), client, CONTRACT_ADDRESS);
+    @GetMapping("/{token_id}")
+    fun GetByToken(@PathVariable token_id: Int): Array<InvoiceNTF> {
+        val result = bcQuery(ByteString.copyFromUtf8("""{"current_ask_for_token": { "token_id" : "${token_id}" }}"""), client, CONTRACT_ADDRESS);
 
         return gson.fromJson(result, Array<InvoiceNTF>::class.java);
     }
 
-    @GetMapping("/{id}")
-    fun GetById(@PathVariable id:String): InvoiceNTF {
-        val result =  bcQuery(ByteString.copyFromUtf8(String.format("""{"get_by_id": { "acount_addres" : "%s" }}""", id)), client, CONTRACT_ADDRESS);
+    @GetMapping("/{adrres}")
+    fun GetByOwner(@PathVariable addres:String): InvoiceNTF {
+        val result =  bcQuery(ByteString.copyFromUtf8("""{"tokens_of": { "owner" : "${addres}" }}"""), client, CONTRACT_ADDRESS);
 
         return gson.fromJson(result, InvoiceNTF::class.java);
     }
 
     @PostMapping
     fun Insert(@RequestBody invoice:InvoiceNTF): String {
-        val json:String = gson.toJson(invoice)
-        val result =  bcExecute(ByteString.copyFromUtf8("""{"insert_data":{ "obj": ${json} }}"""), "century draft give hazard assault swing attract civil rescue enable model annual session alcohol income utility alley urge play stove silver practice stumble jewel", client, CONTRACT_ADDRESS);
+        val data = MintMsg (
+            MyMintMsg(
+                token_id = "2",
+                owner = invoice.acount_addres,
+                token_uri = "",
+                extension = invoice
+            ),
+            Coin("token","5")
+        )
+
+        val json:String = gson.toJson(data)
+        val result =  bcExecute(ByteString.copyFromUtf8("""{"mint":{ "mint": ${json} }}"""), "century draft give hazard assault swing attract civil rescue enable model annual session alcohol income utility alley urge play stove silver practice stumble jewel", client, CONTRACT_ADDRESS);
 
         return result
     }

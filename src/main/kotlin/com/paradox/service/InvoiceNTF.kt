@@ -19,3 +19,15 @@ data class InvoiceNTF(
     val swift_code: String,
     val note: String,
     val phone: String) { }
+
+
+data class MintMsg(val base:MyMintMsg,
+                    val ask_amount:Coin)
+
+data class Coin(val denom:String,val amount:String)
+
+data class MyMintMsg(val token_id: String,
+                     val owner: String,
+                     val token_uri: String,
+                     var extension:InvoiceNTF)
+
